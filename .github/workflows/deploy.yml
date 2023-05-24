@@ -24,7 +24,7 @@ jobs:
       - name: Build project
         run: cd front && npm run build
 
-      - name: copy file via ssh password
+      - name: Send build to VPS via SSH KEY
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.SSH_HOST }}
