@@ -6,9 +6,25 @@ on:
       - main
 
 jobs:
-  build:
+  build-back:
     runs-on: ubuntu-latest
+    steps:
+      - name: Connects to VPS via SSH
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          username: ${{ secrets.SSH_USERNAME }}
+          host: ${{ secrets.SSH_HOST }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /var/www/random-project/back
+            git pull origin main
+            composer install
+            cd /var/www/random-project/front  
+            rm -rf build
 
+  build-front:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -21,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: cd front && npm install
 
+      - name: Setup ENV
+        run: cd front && echo "${{ secrets.ENV }}" > .env.local
+
       - name: Build project
         run: cd front && npm run build
 
@@ -32,16 +51,4 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_KEY }}
           source: "front/build"
-          target: "/var/www/random-project/front/build"
-
-      - name: Connects to VPS via SSH
-        uses: appleboy/ssh-action@v0.1.3
-        with:
-          username: ${{ secrets.SSH_USERNAME }}
-          host: ${{ secrets.SSH_HOST }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd /var/www/random-project/back
-            git pull origin main
-            composer install
+          target: "/var/www/random-project/"
